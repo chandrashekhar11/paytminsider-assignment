@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+  namespace: default
+  labels:
+    app: node-app
+spec:
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 7
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node-app
+        image: chandupardeshi/my-node-app:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: <As per your Reuirement>
+            memory: <As per your Reuirement>
+
+
+
+---
+
+  apiVersion: autoscaling/v2beta1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: resize-hpa
+    namespace: default
+  spec:
+    scaleTargetRef:
+      apiVersion: apps/v1beta1
+      kind: Deployment
+      name: node-app
+    minReplicas: 10
+    maxReplicas: 15
+    metrics:
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: 60
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 50
+
+---
+
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: lb
+  spec:
+    selector:
+      app: node-app
+    ports:
+      - port: 3000
+        targetPort: 8080
+    type: LoadBalancer

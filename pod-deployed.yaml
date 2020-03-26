@@ -1,0 +1,8 @@
+---
+- name: Create a Deployment by reading the definition from a master node
+  hosts: <hostname worker node >
+  gather_facts: yes
+  become: true
+  tasks:
+    - name: Deploying pods on kubernets node using spec file on master node
+      k8: src=<path to file on kubernets master> state=present
